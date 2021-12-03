@@ -24,7 +24,7 @@ class Bot(lightbulb.BotApp):
             token=token,
             intents=hikari.Intents.ALL,
             prefix="t!",
-            default_enabled_guilds=806576437011677194,
+            default_enabled_guilds=[806576437011677194, 750331314204573756],
         )
 
     def run(self: _BotT) -> None:
