@@ -1,9 +1,33 @@
 import lightbulb
 import hikari
-import logging
 import datetime
+import psutil
+from time import time
+import platform
+from dataclasses import dataclass
+from bot import ROOT_DIR
+from pygount import SourceAnalysis
 
 plugin = lightbulb.Plugin("info")
+
+
+@dataclass
+class CodeCounter:
+    code: int = 0
+    docs: int = 0
+    empty: int = 0
+
+    def count(self) -> "CodeCounter":
+        for file in ROOT_DIR.rglob("*.py"):
+            analysis = SourceAnalysis.from_file(file, "pygount", encoding="utf-8")
+            self.code += analysis.code_count
+            self.docs += analysis.documentation_count
+            self.empty += analysis.empty_count
+
+        return self
+
+
+counter = CodeCounter()
 
 
 @plugin.command
@@ -83,8 +107,50 @@ async def userinfo(ctx: lightbulb.context.Context) -> None:
     await ctx.respond(embed=embed)
 
 
+@plugin.command
+@lightbulb.command("botinfo", "See information my information")
+@lightbulb.implements(lightbulb.commands.PrefixCommand, lightbulb.commands.SlashCommand)
+async def botinfo(ctx: lightbulb.context.Context) -> None:
+    with (proc := psutil.Process()).oneshot():
+        uptime = time() - proc.create_time()
+        cpu_times = proc.cpu_times()
+        total_memory = psutil.virtual_memory().total / (1024 ** 2)
+        memory_percent = proc.memory_percent()
+        memory_usage = total_memory * (memory_percent / 100)
+
+    embed = hikari.Embed(
+        title="Bot information",
+        description="Phloexia is a bot developed by <@700336923264155719> and <@709613711475605544>",
+        colour=0xFFFF00,
+        timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+    )
+
+    fields = [
+        ("Bot version", ctx.bot.bot_version, True),
+        ("Python version", platform.python_version(), True),
+        ("Hikari version", hikari.__version__, True),
+        ("Lightbulb version", lightbulb.__version__, True),
+        ("Uptime", datetime.timedelta(seconds=uptime), True),
+        (
+            "Memory usage",
+            f"{memory_usage:,.3f} / {total_memory:,.0f} MiB ({memory_percent:.0f}%)",
+            True,
+        ),
+        ("Lines", f"{counter.code:,} lines", True),
+        ("Comments", f"{counter.docs:,} lines", True),
+        ("Blank", f"{counter.empty:,} lines", True),
+        ("Database calls", f"{ctx.bot.db.calls:,} calls", True),
+    ]
+
+    for name, value, inline in fields:
+        embed.add_field(name=name, value=value, inline=inline)
+
+    await ctx.respond(embed=embed)
+
+
 def load(bot: lightbulb.BotApp):
     bot.add_plugin(plugin)
+    counter.count()
 
 
 def unload(bot: lightbulb.BotApp):
