@@ -118,7 +118,9 @@ class Bot(lightbulb.BotApp):
     async def on_command_error(self: _BotT, event: lightbulb.CommandErrorEvent) -> None:
         exception = event.exception.__cause__ or event.exception
 
-        if isinstance(exception, lightbulb.NotEnoughArguments):
+        if isinstance(exception, lightbulb.CommandNotFound):
+            pass
+        elif isinstance(exception, lightbulb.NotEnoughArguments):
             await event.context.respond(
                 "You need to pass more arguments for that command to work"
             )
