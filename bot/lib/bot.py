@@ -1,12 +1,15 @@
+import datetime
 import json
-import hikari
 import logging
-import typing as t
-import lightbulb
-from bot.db import Database
-import uuid
-import aiofiles
 import traceback
+import typing as t
+import uuid
+
+import aiofiles
+import hikari
+import lightbulb
+
+from bot.db import Database
 
 _BotT = t.TypeVar("_BotT", bound="Bot")
 with open("bot/secrets/secrets.json", "r") as f:
@@ -40,14 +43,23 @@ class Bot(lightbulb.BotApp):
                 806576437011677194,
                 750331314204573756,
                 701303404630376448,
+                914433510343856158,
             ],
         )
 
+        self.d.interactive_embeds = {}
+
     def run(self: _BotT) -> None:
+        # Hikari events
         self.event_manager.subscribe(hikari.StartingEvent, self.on_starting)
         self.event_manager.subscribe(hikari.StartedEvent, self.on_started)
+        self.event_manager.subscribe(
+            hikari.GuildAvailableEvent, self.on_guild_available
+        )
         self.event_manager.subscribe(hikari.StoppingEvent, self.on_stopping)
         self.event_manager.subscribe(hikari.ExceptionEvent, self.on_exception)
+
+        # Lightbulb events
         self.event_manager.subscribe(lightbulb.CommandErrorEvent, self.on_command_error)
 
         super().run(
@@ -82,6 +94,11 @@ class Bot(lightbulb.BotApp):
 
         logging.info("Bot ready")
 
+    async def on_guild_available(
+        self: _BotT, event: hikari.GuildAvailableEvent
+    ) -> None:
+        self.d.interactive_embeds[event.guild_id] = {}
+
     async def on_stopping(self: _BotT, event: hikari.StoppingEvent) -> None:
         await self.stdout_channel.send(f"Testing v{__version__} is shutting down.")
         logging.info(f"Testing v{__version__} is shutting down.")
@@ -92,27 +109,49 @@ class Bot(lightbulb.BotApp):
         exception = event.exception
 
         error_id = str(uuid.uuid4())
-        # await event.context.respond(
-        # f"Your error ID is `{error_id}` and the error type is `hikari`"
-        # )
+        await self.rest.create_message(
+            self.stdout_channel_id,
+            f"A hikari error occurred and I have logged it with the id {error_id}",
+        )
         raise exception
 
     async def on_command_error(self: _BotT, event: lightbulb.CommandErrorEvent) -> None:
         exception = event.exception.__cause__ or event.exception
 
-        # if isinstance(exception, lightbulb.NotEnoughArguments):
-        #     await event.context.respond(
-        #         "You need to pass more arguments for that command to work"
-        #     )
-        # else:
-        error_id = str(uuid.uuid4())
-        await event.context.respond(
-            f"Your error has been logged!/nPlease report the following to the developers:\nID: `{error_id}`\nError type: `lightbulb`"
-        )
+        if isinstance(exception, lightbulb.NotEnoughArguments):
+            await event.context.respond(
+                "You need to pass more arguments for that command to work"
+            )
+        elif isinstance(
+            exception,
+            (
+                lightbulb.ExtensionNotFound,
+                lightbulb.ExtensionMissingLoad,
+                lightbulb.ExtensionMissingUnload,
+                lightbulb.ExtensionNotLoaded,
+                lightbulb.ExtensionAlreadyLoaded,
+            ),
+        ):
+            await event.context.respond(event.exception)
+        else:
+            error_id = str(uuid.uuid4())
 
-        async with aiofiles.open(f"errors/lightbulb/{error_id}.txt", "w") as file:
-            partial_traceback: t.List[str] = traceback.format_exception(*event.exc_info)
-            full_traceback = "".join(line for line in partial_traceback)
-            await file.write(full_traceback)
+            embed = hikari.Embed(
+                title="An error has occurred",
+                description="While processing that command and unknown error occurred. It has been logged, please report the error ID to the developers to get it sorted.",
+                colour=0xFF0000,
+                timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
+            )
 
-        raise exception
+            embed.add_field("Error type", "hikari-lightbulb", inline=True).add_field(
+                "Error ID:", f"`{error_id}`", inline=True
+            ).add_field("Basic error", f"```py\n{str(exception)}```", inline=False)
+
+            await event.context.respond(embed=embed)
+
+            async with aiofiles.open(f"errors/lightbulb/{error_id}.txt", "w") as file:
+                partial_traceback: t.List[str] = traceback.format_exception(
+                    *event.exc_info
+                )
+                full_traceback = "".join(line for line in partial_traceback)
+                await file.write(full_traceback)

@@ -1,0 +1,6 @@
+Traceback (most recent call last):
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/app.py", line 974, in handle_messsage_create_for_prefix_commands
+    await self.process_prefix_commands(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/app.py", line 941, in process_prefix_commands
+    raise errors.CommandNotFound(
+lightbulb.errors.CommandNotFound: A command with name or alias 'embed-say' does not exist

@@ -1,0 +1,22 @@
+Traceback (most recent call last):
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/app.py", line 1094, in invoke_application_command
+    await context.invoke()
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/context/base.py", line 256, in invoke
+    await self.command.invoke(self)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/commands/slash.py", line 187, in invoke
+    await self._invoke_subcommand(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/commands/slash.py", line 72, in _invoke_subcommand
+    await self._subcommands[cmd_option.name].invoke(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/commands/base.py", line 378, in invoke
+    await self(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/commands/base.py", line 328, in __call__
+    return await self.callback(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/bot/lib/plugins/owner.py", line 28, in reload
+    ctx.bot.reload_extensions(f"bot.lib.plugins.{ctx.options.plugin}")
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/app.py", line 477, in reload_extensions
+    old = sys.modules[extension]
+KeyError: 'bot.lib.plugins.testing123'
+
+The above exception was the direct cause of the following exception:
+
+lightbulb.errors.CommandInvocationError: An error occurred during command 'plugin' invocation

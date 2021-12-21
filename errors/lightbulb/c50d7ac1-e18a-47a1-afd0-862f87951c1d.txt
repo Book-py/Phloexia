@@ -1,0 +1,26 @@
+Traceback (most recent call last):
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/app.py", line 1094, in invoke_application_command
+    await context.invoke()
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/context/base.py", line 256, in invoke
+    await self.command.invoke(self)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/commands/base.py", line 378, in invoke
+    await self(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/commands/base.py", line 328, in __call__
+    return await self.callback(context)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/bot/lib/plugins/info.py", line 116, in userinfo
+    await ctx.respond(embed=embed)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/lightbulb/context/base.py", line 393, in respond
+    self._responses.append(ResponseProxy(await self._interaction.execute(*args, **kwargs)))
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/hikari/webhooks.py", line 239, in execute
+    return await self.app.rest.execute_webhook(
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/hikari/impl/rest.py", line 1852, in execute_webhook
+    return await self._create_message(
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/hikari/impl/rest.py", line 1284, in _create_message
+    embed_payload, embed_attachments = self._entity_factory.serialize_embed(embed)
+  File "/home/book/Desktop/Python/Bots/Discord/Phloexia/.venv/lib/python3.10/site-packages/hikari/impl/entity_factory.py", line 1023, in serialize_embed
+    raise TypeError(f"in embed.fields[{i}].name - cannot have `None`")
+TypeError: in embed.fields[7].name - cannot have `None`
+
+The above exception was the direct cause of the following exception:
+
+lightbulb.errors.CommandInvocationError: An error occurred during command 'userinfo' invocation

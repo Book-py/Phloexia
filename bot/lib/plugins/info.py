@@ -1,12 +1,15 @@
-import lightbulb
-import hikari
 import datetime
-import psutil
-from time import time
 import platform
 from dataclasses import dataclass
+from time import time
+
+import hikari
+import lightbulb
+import psutil
 from bot import ROOT_DIR
 from pygount import SourceAnalysis
+import io
+from PIL import Image
 
 plugin = lightbulb.Plugin("info")
 
@@ -62,6 +65,7 @@ async def userinfo(ctx: lightbulb.context.Context) -> None:
     roles = (sorted((await target.fetch_roles())[1:], key=lambda role: role.position))[
         ::-1
     ]
+    boosting = bool(target.premium_since)
 
     embed = hikari.Embed(
         title=f"User information for `{target.username}#{target.discriminator}` {f'(AKA `{target.display_name}`)' if target.display_name != target.username else ''}",
@@ -75,17 +79,27 @@ async def userinfo(ctx: lightbulb.context.Context) -> None:
         else ctx.member.default_avatar_url,
     )
 
-    embed.set_thumbnail(
-        target.avatar_url if target.avatar_url else target.default_avatar_url
-    )
+    # embed.set_thumbnail(
+    #     target.avatar_url if target.avatar_url else target.default_avatar_url
+    # )
 
     banner_url = (
         f"{str(user.banner_url).split('size=')[0]}size=70096"
         if user.banner_url
         else None
     )
-    embed.set_image(user.banner_url if user.banner_url else user.accent_colour)
-    print(banner_url)
+    if user.accent_color or user.banner_url:
+        if user.banner_url:
+            embed.set_image(user.banner_url)
+        elif user.accent_color:
+            im = Image.new("RGB", (200, 200), user.accent_color.rgb)
+            buffer = io.BytesIO()
+
+            im.save(buffer, "png")
+            buffer.seek(0)
+
+            bytes = hikari.Bytes(buffer, "accent colour.png")
+            embed.set_image(bytes)
 
     fields = [
         ("Bot?", target.is_bot, True),
@@ -94,17 +108,25 @@ async def userinfo(ctx: lightbulb.context.Context) -> None:
         ("Is pending?", target.is_pending, True),
         ("Voice muted?", "Yes" if target.is_mute else "No", True),
         ("Voice deafened?", "Yes" if target.is_deaf else "No", True),
-        (
-            "Roles",
-            f", ".join(role.mention for role in roles),
-            False,
-        ),
+        ("Boosting?", "Yes" if boosting else "No", True),
     ]
 
     for name, value, inline in fields:
         embed.add_field(name=name, value=value, inline=inline)
 
+    if boosting:
+        embed.add_filed(
+            name="boosting since",
+            value=f"<t:{int(target.premium_since.timestamp())}:d> (<t:{int(target.premium_since.timestamp())}:R>)",
+            inline=False,
+        )
+
+    embed.add_field(
+        name="Roles", value=f", ".join(role.mention for role in roles), inline=False
+    )
+
     await ctx.respond(embed=embed)
+    # await ctx.respond("Updated code")
 
 
 @plugin.command
