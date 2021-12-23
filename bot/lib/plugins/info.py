@@ -98,7 +98,8 @@ async def userinfo(ctx: lightbulb.context.Context) -> None:
             im.save(buffer, "png")
             buffer.seek(0)
 
-            bytes = hikari.Bytes(buffer, "accent colour.png")
+            bytes = hikari.Bytes(buffer, "accent_colour.png")
+
             embed.set_image(bytes)
 
     fields = [
