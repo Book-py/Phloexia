@@ -143,7 +143,7 @@ async def botinfo(ctx: lightbulb.context.Context) -> None:
 
     embed = hikari.Embed(
         title="Bot information",
-        description="Phloexia is a bot developed by <@700336923264155719> and <@709613711475605544>",
+        description="Phloexia is a bot developed by <@700336923264155719>, <@709613711475605544> and <@700336190263525426>",
         colour=0xFFFF00,
         timestamp=datetime.datetime.now(tz=datetime.timezone.utc),
     )
