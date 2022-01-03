@@ -1,10 +1,10 @@
 hikari[speedups]~=2.0.0.dev104
 hikari-lightbulb==2.1.0
-asyncpg
 apscheduler>=3.7.0
 uvloop>=0.16
 aiofiles
 psutil
 pygount
 pillow
+motor
 git+https://github.com/neonjonn/lightbulb-ext-neon.git

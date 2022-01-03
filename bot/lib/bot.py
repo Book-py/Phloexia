@@ -8,10 +8,10 @@ import uuid
 import aiofiles
 import hikari
 import lightbulb
-
-from bot.db import Database
+import motor
 
 _BotT = t.TypeVar("_BotT", bound="Bot")
+
 with open("bot/secrets/secrets.json", "r") as f:
     data = json.load(f)
     __version__ = data["__version__"]
@@ -26,13 +26,13 @@ class Bot(lightbulb.BotApp):
     )
 
     def __init__(self: _BotT) -> _BotT:
-        self.db = Database(self)
         self.bot_version = __version__
 
         with open("bot/secrets/secrets.json", "r") as f:
             data = json.load(f)
 
             token = data["token"]
+            self.db = motor.MotorClient(data["mongo_db_uri"])
             self.stdout_channel_id = data["stdout_channel_id"]
 
         super().__init__(
@@ -74,14 +74,6 @@ class Bot(lightbulb.BotApp):
             "bot/lib/plugins",
             must_exist=True,
         )
-        await self.db.create_pool()
-        await self.db.execute(
-            """
-            CREATE TABLE IF NOT EXISTS guilds (
-                GuildID bigint NOT NULL,
-                TestValue text
-            )"""
-        )
 
     async def on_started(self: _BotT, event: hikari.StartedEvent) -> None:
         self.stdout_channel = await self.rest.fetch_channel(self.stdout_channel_id)
@@ -102,8 +94,6 @@ class Bot(lightbulb.BotApp):
     async def on_stopping(self: _BotT, event: hikari.StoppingEvent) -> None:
         await self.stdout_channel.send(f"Testing v{__version__} is shutting down.")
         logging.info(f"Testing v{__version__} is shutting down.")
-
-        # Shutdown / disconnect anything needed here
 
     async def on_exception(self: _BotT, event: hikari.ExceptionEvent) -> None:
         exception = event.exception
